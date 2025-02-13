@@ -15,7 +15,7 @@
         <td>{{ task.content }}</td>
         <td>
           <button class="btn"><router-link :to="'/detail/' + task.id">Detail</router-link></button>
-          <button class="btn"><router-link :to="'/update/' + task.id">Update</router-link></button>
+          <button class="btn"><router-link :to="'/updatetask/' + task.id">Update</router-link></button>
           <button class="btn" @click="deleteTask(task.id)">Delete</button>
         </td>
       </tr>
