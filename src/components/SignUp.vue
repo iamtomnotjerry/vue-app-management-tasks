@@ -12,6 +12,8 @@
 
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -23,13 +25,15 @@ export default {
     }
   },
   methods: {
-    SignUp(){
+    async SignUp(){
       console.log(this.form)
       let userItem = {
         name: this.form.name,
         email: this.form.email,
         password: this.form.password
       }
+      let result = await axios.post("http://localhost:3000/users",userItem);
+      console.log(result)
     }
   }
 }
