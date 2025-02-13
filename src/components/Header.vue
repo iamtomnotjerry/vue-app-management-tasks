@@ -2,7 +2,9 @@
   <div class="nav">
     <ul>
       <li><a href="#">Add Task</a></li>
-      <li><a href="#">Update Profile</a></li>
+      <li>
+        <RouterLink :to="'/updateuser/'+ userId">Update Profile</RouterLink>
+      </li>
       <li><a href="#" @click.prevent="Logout">Log Out</a></li>
       <li class="user-name">Welcome: {{ username }}</li> 
     </ul>
@@ -10,10 +12,13 @@
 </template>
 
 <script>
+import { RouterLink } from 'vue-router';
+
 export default {
   data() {
     return {
-      username: ''
+      username: '',
+      userId: ''
     };
   },
   created() {
@@ -21,6 +26,7 @@ export default {
     if (userLogin) {
       try {
         this.username = JSON.parse(userLogin).name; // Đọc dữ liệu từ localStorage
+        this.userId = JSON.parse(userLogin).name; // Đọc dữ liệu từ localStorage
       } catch (error) {
         console.error("Error parsing userLogin:", error);
       }
