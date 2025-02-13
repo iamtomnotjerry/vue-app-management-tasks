@@ -57,6 +57,8 @@ export default {
           let user = users.find(u => u.email === this.form.email && u.password === this.form.password);
 
           if (user) {
+            localStorage.setItem("userLogin", JSON.stringify(user));
+
             Swal.fire({
               title: "Success!",
               text: "Login successful!",
