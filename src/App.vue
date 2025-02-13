@@ -44,7 +44,7 @@ h1 {
   text-align: center;
 }
 
-.list-post {
+.list-task {
   margin-top: 5px;
 }
 

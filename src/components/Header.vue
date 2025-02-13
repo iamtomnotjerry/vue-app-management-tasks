@@ -1,7 +1,9 @@
 <template>
   <div class="nav">
     <ul>
-      <li><a href="#">Add Task</a></li>
+      <li>
+        <routerLink to="addtask">Add Task</routerLink>
+      </li>
       <li>
         <RouterLink :to="'/updateuser/'+ userId">Update Profile</RouterLink>
       </li>

@@ -3,6 +3,7 @@ import Home from './components/Home.vue';
 import SignUp from './components/Signup.vue';
 import LogIn from "./components/LogIn.vue";
 import UpdateUser from "./components/UpdateUser.vue";
+import AddTask from "./components/AddTask.vue";
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     name: "UpdateUser",
     component: UpdateUser,
     path: '/updateuser/:id'
+  },
+  {
+    name: "AddTask",
+    component: AddTask,
+    path: '/addtask'
   }
 ];
 
