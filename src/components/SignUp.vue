@@ -13,7 +13,7 @@
 
 <script>
 import axios from 'axios';
-
+import Swal from 'sweetalert2'
 export default {
   data() {
     return {
@@ -26,14 +26,25 @@ export default {
   },
   methods: {
     async SignUp(){
-      console.log(this.form)
       let userItem = {
         name: this.form.name,
         email: this.form.email,
         password: this.form.password
       }
       let result = await axios.post("http://localhost:3000/users",userItem);
-      console.log(result)
+      if (result.status == 201) {
+        Swal.fire({
+          title: "success!!",
+          text: "Data Inserted!",
+          icon: "success",
+          timer: 2000,
+        });
+        setTimeout(()=>{
+          this.$router.push({
+            name:'Home'
+          },2000)
+        })
+      }
     }
   }
 }
