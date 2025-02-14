@@ -23,6 +23,18 @@
       "name": "user4 ",
       "email": "user4@gmail.com",
       "password": "user4"
+    },
+    {
+      "id": "06de",
+      "name": "user2",
+      "email": "user2@gmail.com",
+      "password": "user2"
+    },
+    {
+      "id": "1373",
+      "name": "user10",
+      "email": "user10@gmail.com",
+      "password": "20102004B@o"
     }
   ],
   "tasks": [
@@ -30,12 +42,6 @@
       "title": "Baro",
       "content": "Baro",
       "id": "e34a"
-    },
-    {
-      "title": "Cho",
-      "content": "Cho",
-      "userId": "6fe2",
-      "id": "d92f"
     },
     {
       "id": "ce8e",
@@ -54,6 +60,12 @@
       "userId": "6fe2",
       "title": "do homework",
       "content": "learn vue"
+    },
+    {
+      "id": "b320",
+      "userId": "6fe2",
+      "title": "task1 ",
+      "content": "do the work"
     }
   ]
 }
