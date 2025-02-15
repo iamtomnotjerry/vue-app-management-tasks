@@ -6,7 +6,7 @@
 
     <div v-if="filteredTasks.length === 0" class="no-tasks">
       <p>No tasks found! Add a new task to get started. 😊</p>
-      <router-link to="/addtask" class="btn add-task">➕ Add Task</router-link>
+      <button @click="showAddTaskModal = true" class="btn add-task">➕ Add Task</button>
     </div>
 
     <table v-else class="task-table">
@@ -39,6 +39,9 @@
 
     <!-- Update Modal -->
     <UpdateTask v-if="showUpdateModal" :task="selectedTask" @close-modal="showUpdateModal = false" @task-updated="updateTaskList" />
+
+    <!-- Add Task Modal -->
+    <AddTask v-if="showAddTaskModal" @close-modal="showAddTaskModal = false" @task-added="addTaskToList" />
   </div>
 </template>
 
@@ -46,21 +49,23 @@
 import Swal from "sweetalert2";
 import DetailTask from "./DetailTask.vue";
 import UpdateTask from "./UpdateTask.vue";
+import AddTask from "./AddTask.vue";
 
 export default {
-  components: { DetailTask, UpdateTask },
+  components: { DetailTask, UpdateTask, AddTask },
   props: ["tasks"],
   data() {
     return {
       searchQuery: "",
       showDetailModal: false,
       showUpdateModal: false,
+      showAddTaskModal: false,
       selectedTask: null
     };
   },
   computed: {
     filteredTasks() {
-      return this.tasks.filter(task => 
+      return (this.tasks ?? []).filter(task => 
         task.title.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     }
@@ -73,6 +78,10 @@ export default {
     openUpdate(task) {
       this.selectedTask = { ...task };
       this.showUpdateModal = true;
+    },
+    addTaskToList(newTask) {
+      this.tasks.push(newTask);
+      this.showAddTaskModal = false;
     },
     async deleteTask(id) {
       Swal.fire({
