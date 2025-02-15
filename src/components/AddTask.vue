@@ -1,11 +1,31 @@
 <template>
-  <div class="add-container">
-    <h1 class="title">📝 Add New Task</h1>
-    <div class="form-box">
-      <input type="text" placeholder="Enter title..." v-model="form.title" class="input-field">
-      <textarea placeholder="Enter content..." rows="6" v-model="form.content" class="textarea-field"></textarea>
-      <button @click="addTask()" class="btn add-btn">➕ Add Task</button>
-      <button class="btn list-task"><router-link to="/">📋 Go To List Tasks</router-link></button>
+  <div class="modal-overlay">
+    <div class="add-container">
+      <h1 class="title">💖 Add Your Task 💖</h1>
+      <p class="subtitle">Plan your day with love & productivity! ✨</p>
+
+      <div class="form-box">
+        <div class="input-group">
+          <input type="text" placeholder="🎀 Task Title..." v-model="form.title" class="input-field">
+        </div>
+
+        <div class="input-group">
+          <textarea placeholder="📝 Task Details..." rows="5" v-model="form.content" class="textarea-field"></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="label">📅 Start Date:</label>
+          <input type="date" v-model="form.startDate" class="input-field">
+        </div>
+
+        <div class="input-group">
+          <label class="label">⏳ Deadline:</label>
+          <input type="date" v-model="form.deadline" class="input-field">
+        </div>
+
+        <button @click="addTask()" class="btn add-btn">🌸 Add Task</button>
+        <button @click="$emit('close-modal')" class="btn close-btn">❌ Close</button>
+      </div>
     </div>
   </div>
 </template>
@@ -19,9 +39,11 @@ export default {
     return {
       form: {
         title: "",
-        content: ""
+        content: "",
+        startDate: "",
+        deadline: ""
       },
-      user: null // Store logged-in user
+      user: null
     };
   },
   created() {
@@ -35,30 +57,30 @@ export default {
     } else {
       Swal.fire({
         icon: "warning",
-        title: "No User Found!",
+        title: "🚨 No User Found!",
         text: "Please log in to add tasks.",
         confirmButtonColor: "#f39c12"
       }).then(() => {
-        this.$router.push({ name: "LogIn" }); // Redirect to login page
+        this.$router.push({ name: "LogIn" });
       });
     }
   },
   methods: {
     async addTask() {
-      if (!this.form.title || !this.form.content) {
+      if (!this.form.title.trim() || !this.form.content.trim() || !this.form.startDate || !this.form.deadline) {
         Swal.fire({
           icon: "error",
-          title: "Oops...",
-          text: "Please fill in both title and content!",
+          title: "Oops... 🙈",
+          text: "Please fill in all fields!",
           confirmButtonColor: "#d33"
         });
         return;
       }
 
-      if (!this.user) {
+      if (!this.user || !this.user.id) {
         Swal.fire({
           icon: "error",
-          title: "Not Logged In",
+          title: "Not Logged In 😢",
           text: "You need to log in first!",
           confirmButtonColor: "#d33"
         });
@@ -67,8 +89,11 @@ export default {
 
       let task = {
         userId: this.user.id,
-        title: this.form.title,
-        content: this.form.content
+        title: this.form.title.trim(),
+        content: this.form.content.trim(),
+        startDate: this.form.startDate,
+        deadline: this.form.deadline,
+        completed: false
       };
 
       try {
@@ -77,19 +102,18 @@ export default {
 
         Swal.fire({
           icon: "success",
-          title: "Task Added!",
+          title: "✨ Task Added!",
           text: "Your task has been successfully added.",
-          confirmButtonColor: "#3085d6"
+          confirmButtonColor: "#ff69b4"
         });
-
-        // Reset form
-        this.form.title = "";
-        this.form.content = "";
+        this.$emit("task-added"); // ✅ Notify Home.vue to update task list
+        this.$emit("close-modal");
+        this.form = { title: "", content: "", startDate: "", deadline: "" };
       } catch (error) {
         console.error("Error adding task:", error);
         Swal.fire({
           icon: "error",
-          title: "Error",
+          title: "🚨 Error",
           text: "Failed to add task. Please try again!",
           confirmButtonColor: "#d33"
         });
@@ -100,117 +124,121 @@ export default {
 </script>
 
 <style scoped>
-/* Background */
-.add-container {
-  background: linear-gradient(135deg, #74ebd5, #acb6e5);
-  min-height: 100vh;
+/* 🌸 Modal Background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 20px;
-}
-
-/* Title */
-.title {
-  font-size: 32px;
-  color: #2c3e50;
-  margin-bottom: 20px;
-  font-weight: bold;
-}
-
-/* Form Box */
-.form-box {
-  width: 90%;
-  max-width: 600px;
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-  text-align: center;
+  align-items: center;
+  z-index: 1000;
   animation: fadeIn 0.5s ease-in-out;
 }
 
-/* Input Fields */
+/* 🌈 Modal Container */
+.add-container {
+  background: #fff0f6;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0px 4px 15px rgba(255, 105, 180, 0.4);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  animation: bounceIn 0.8s ease-in-out;
+}
+
+/* 🎀 Title */
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff69b4;
+  text-shadow: 2px 2px 4px rgba(255, 182, 193, 0.6);
+}
+
+/* 🌟 Subtitle */
+.subtitle {
+  font-size: 14px;
+  color: #ff85a2;
+  margin-bottom: 20px;
+}
+
+/* 📜 Form Inputs */
+.input-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ff69b4;
+  margin-bottom: 5px;
+  display: block;
+}
+
 .input-field, .textarea-field {
   width: 100%;
   padding: 12px;
-  margin: 10px 0;
-  border: 2px solid #3498db;
-  border-radius: 5px;
-  font-size: 16px;
+  border-radius: 12px;
+  border: 2px solid #ff69b4;
+  background: #fff;
+  font-size: 14px;
+  color: #333;
+  outline: none;
   transition: 0.3s ease-in-out;
 }
 
 .input-field:focus, .textarea-field:focus {
-  border-color: #2980b9;
-  box-shadow: 0px 0px 8px rgba(52, 152, 219, 0.5);
-  outline: none;
+  border-color: #ff85a2;
+  box-shadow: 0px 0px 10px rgba(255, 105, 180, 0.5);
 }
 
-/* Buttons */
+/* 🎀 Buttons */
 .btn {
-  display: inline-block;
   width: 100%;
   padding: 12px;
   font-size: 16px;
   font-weight: bold;
-  border-radius: 5px;
+  border: none;
+  border-radius: 12px;
+  transition: 0.3s ease-in-out;
   cursor: pointer;
   margin-top: 10px;
-  text-decoration: none;
-  transition: 0.3s ease-in-out;
 }
 
-.btn a {
-  text-decoration: none;
-  color: white;
-}
-
-/* Add Button */
 .add-btn {
-  background: #2ecc71;
+  background: linear-gradient(135deg, #ff69b4, #ff85a2);
   color: white;
+  box-shadow: 0px 4px 10px rgba(255, 105, 180, 0.4);
 }
 
 .add-btn:hover {
-  background: #27ae60;
+  background: #ff4f9a;
+  box-shadow: 0px 6px 15px rgba(255, 105, 180, 0.6);
 }
 
-/* List Task Button */
-.list-task {
-  background: #f39c12;
+.close-btn {
+  background: #e74c3c;
   color: white;
 }
 
-.list-task:hover {
-  background: #e67e22;
+.close-btn:hover {
+  background: #c0392b;
 }
 
-/* Animations */
+/* ✨ Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .form-box {
-    padding: 20px;
-  }
-
-  .title {
-    font-size: 28px;
-  }
-
-  .btn {
-    font-size: 14px;
-  }
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
 }
 </style>

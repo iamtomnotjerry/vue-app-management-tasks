@@ -1,121 +1,95 @@
 <template>
-  <div class="update">
-    <h1>Update Task</h1>
-    <input type="text" placeholder="Enter title" v-model="form.title">
-    <textarea placeholder="Enter content" rows="6" v-model="form.content"></textarea>
-    <button @click="updateTask()">Update Task</button>
-    <button class="list-task"><router-link to="/">Go To List Tasks</router-link></button>
+  <div class="modal-overlay" @click.self="$emit('close-modal')">
+    <div class="modal-content">
+      <button class="close-btn" @click="$emit('close-modal')">✖️</button>
+      <h1>📝 Update Task</h1>
+
+      <div class="form-group">
+        <label>✨ Title:</label>
+        <input type="text" v-model="form.title" placeholder="Enter title" />
+      </div>
+
+      <div class="form-group">
+        <label>💖 Content:</label>
+        <textarea rows="4" v-model="form.content" placeholder="Enter content"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>📅 Start Date:</label>
+        <input type="date" v-model="form.startDate" />
+      </div>
+
+      <div class="form-group">
+        <label>⏳ Deadline:</label>
+        <input type="date" v-model="form.deadline" />
+      </div>
+
+      <div class="form-group">
+        <label>✅ Completed:</label>
+        <input type="checkbox" v-model="form.completed" />
+      </div>
+
+      <button @click="updateTask">🌸 Update Task</button>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 export default {
+  props: ["task"],
   data() {
     return {
       form: {
         title: "",
         content: "",
-        userId: "" // Ensure userId is retained
-      },
-      user: null, // Store logged-in user
-      taskId: null // Task ID to update
+        startDate: "",
+        deadline: "",
+        completed: false
+      }
     };
   },
-  created() {
-    // Get user from localStorage
-    let userLogin = localStorage.getItem("userLogin");
-    if (userLogin) {
-      try {
-        this.user = JSON.parse(userLogin);
-      } catch (error) {
-        console.error("Error parsing userLogin:", error);
+  watch: {
+    task: {
+      immediate: true,
+      handler(newTask) {
+        if (newTask) {
+          this.form = { ...newTask };
+        }
       }
-    } else {
-      Swal.fire({
-        icon: "warning",
-        title: "No User Found!",
-        text: "Please log in to update tasks.",
-        confirmButtonColor: "#f39c12"
-      }).then(() => {
-        this.$router.push({ name: "LogIn" }); // Redirect to login page
-      });
     }
-
-    // Fetch task data from API
-    this.taskId = this.$route.params.id; // Get task ID from route
-    this.fetchTask();
   },
   methods: {
-    async fetchTask() {
-      try {
-        let response = await axios.get(`http://localhost:3000/tasks/${this.taskId}`);
-        let task = response.data;
-
-        // Check if the logged-in user is the task owner
-        if (task.userId !== this.user.id) {
-          Swal.fire({
-            icon: "error",
-            title: "Access Denied",
-            text: "You can only update your own tasks!",
-            confirmButtonColor: "#d33"
-          }).then(() => {
-            this.$router.push({ name: "Home" });
-          });
-          return;
-        }
-
-        // Populate form with existing data
-        this.form.title = task.title;
-        this.form.content = task.content;
-        this.form.userId = task.userId; // Preserve the userId
-      } catch (error) {
-        console.error("Error fetching task:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to fetch task data.",
-          confirmButtonColor: "#d33"
-        });
-      }
-    },
     async updateTask() {
-      if (!this.form.title || !this.form.content) {
+      if (!this.form.title || !this.form.content || !this.form.startDate || !this.form.deadline) {
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Please fill in both title and content!",
-          confirmButtonColor: "#d33"
+          text: "Please fill in all fields!",
+          confirmButtonColor: "#ff6680"
         });
         return;
       }
 
-      let updatedTask = {
-        title: this.form.title,
-        content: this.form.content,
-        userId: this.form.userId // Ensure userId is included
-      };
-
       try {
-        await axios.put(`http://localhost:3000/tasks/${this.taskId}`, updatedTask);
-
+        await axios.put(`http://localhost:3000/tasks/${this.form.id}`, this.form);
         Swal.fire({
           icon: "success",
           title: "Task Updated!",
           text: "Your task has been successfully updated.",
-          confirmButtonColor: "#3085d6"
+          confirmButtonColor: "#ff99cc"
         });
-
-        this.$router.push({ name: "Home" }); // Redirect to home after update
+        this.$emit("close-modal");
+        this.$emit("task-updated", this.form);
       } catch (error) {
         console.error("Error updating task:", error);
         Swal.fire({
           icon: "error",
           title: "Error",
           text: "Failed to update task. Please try again!",
-          confirmButtonColor: "#d33"
+          confirmButtonColor: "#ff6680"
         });
       }
     }
@@ -123,34 +97,72 @@ export default {
 };
 </script>
 
-<style>
-.update {
-  max-width: 500px;
-  margin: auto;
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  position: relative;
   text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
 }
 
 input, textarea {
   width: 100%;
-  margin: 10px 0;
   padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
 button {
-  margin: 5px;
-  padding: 10px 15px;
-  background-color: #00AA6D;
+  background: #ff99cc;
   color: white;
   border: none;
+  padding: 10px 15px;
   cursor: pointer;
+  border-radius: 5px;
+  width: 100%;
+  font-size: 16px;
 }
 
 button:hover {
-  background-color: #008F5E;
-}
-
-.list-task a {
-  text-decoration: none;
-  color: white;
+  background: #ff6680;
 }
 </style>

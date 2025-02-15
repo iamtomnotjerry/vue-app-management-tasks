@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { mapActions } from "vuex";
 import Swal from "sweetalert2";
 
 export default {
@@ -35,51 +35,36 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["login"]),
+    
     async Login() {
       this.errors = {};
-
+      
       if (!this.form.email) this.errors.email = "Email is required!";
       else if (!this.validateEmail(this.form.email)) this.errors.email = "Invalid email format!";
       if (!this.form.password) this.errors.password = "Password is required!";
       if (Object.keys(this.errors).length > 0) return;
 
-      try {
-        let response = await axios.get("http://localhost:3000/users");
-        if (response.status === 200) {
-          let users = response.data;
-          let user = users.find(u => u.email === this.form.email && u.password === this.form.password);
+      let result = await this.login(this.form);
 
-          if (user) {
-            localStorage.setItem("userLogin", JSON.stringify(user));
+      if (result.success) {
+        Swal.fire({
+          title: "Yay! 🎉",
+          text: "Login successful!",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        });
 
-            Swal.fire({
-              title: "Yay! 🎉",
-              text: "Login successful!",
-              icon: "success",
-              timer: 2000,
-              showConfirmButton: false
-            });
-
-            setTimeout(() => this.$router.push({ name: "Home" }), 2000);
-          } else {
-            Swal.fire({
-              title: "Oops! 😢",
-              text: "Invalid email or password!",
-              icon: "error",
-              timer: 2000,
-              showConfirmButton: false
-            });
-          }
-        }
-      } catch (error) {
+        setTimeout(() => this.$router.push({ name: "Home" }), 2000);
+      } else {
         Swal.fire({
           title: "Oops! 😢",
-          text: "Something went wrong. Please try again later.",
+          text: result.message,
           icon: "error",
           timer: 2000,
           showConfirmButton: false
         });
-        console.error("Login error:", error);
       }
     },
     validateEmail(email) {
@@ -88,6 +73,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 /* 🎀 Beautiful Background */

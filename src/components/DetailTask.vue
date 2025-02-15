@@ -1,159 +1,156 @@
 <template>
-  <div class="detail-container">
-    <div class="card">
+  <div class="modal-overlay" @click.self="$emit('close-modal')">
+    <div class="modal-content">
+      <button class="close-btn" @click="$emit('close-modal')">✖️</button>
       <h1 class="title">📌 Task Details</h1>
+
       <div v-if="task" class="task-info">
         <p><strong>ID:</strong> {{ task.id }}</p>
         <p><strong>Title:</strong> {{ task.title }}</p>
         <p><strong>Content:</strong> {{ task.content }}</p>
         <p><strong>Owner:</strong> {{ userName }}</p>
+        <p><strong>Start Date:</strong> {{ formatDate(task.startDate) }}</p>
+        <p><strong>Deadline:</strong> {{ formatDate(task.deadline) }}</p>
+        <p v-if="task.completed"><strong>Finished Date:</strong> {{ formatDateTime(task.finishedDate) }}</p>
+        <p :class="statusClass"><strong>Status:</strong> {{ taskStatus }}</p>
       </div>
+
       <div v-else class="loading">
         <p>Loading task details...</p>
       </div>
-      <button class="btn back-btn">
-        <router-link to="/">⬅️ Back to Task List</router-link>
-      </button>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import Swal from "sweetalert2";
 
 export default {
+  props: ["task"],
   data() {
     return {
-      task: null,
       userName: "",
-      user: null, 
-      taskId: null
+      user: null
     };
   },
-  async created() {
-    let userLogin = localStorage.getItem("userLogin");
-    if (userLogin) {
-      try {
-        this.user = JSON.parse(userLogin);
-      } catch (error) {
-        console.error("Error parsing userLogin:", error);
-      }
-    } else {
-      Swal.fire({
-        icon: "warning",
-        title: "No User Found!",
-        text: "Please log in to view task details.",
-        confirmButtonColor: "#f39c12"
-      }).then(() => {
-        this.$router.push({ name: "LogIn" });
-      });
-      return;
+  computed: {
+    taskStatus() {
+      if (this.task.completed) return "✅ Completed";
+      const today = new Date().toISOString().split("T")[0];
+      return this.task.deadline < today ? "❌ Overdue" : "⏳ In Progress";
+    },
+    statusClass() {
+      return {
+        completed: this.task.completed,
+        overdue: this.task.deadline < new Date().toISOString().split("T")[0] && !this.task.completed,
+        inprogress: !this.task.completed && this.task.deadline >= new Date().toISOString().split("T")[0]
+      };
     }
-
-    this.taskId = this.$route.params.id;
-    await this.fetchTask();
+  },
+  watch: {
+    task: {
+      immediate: true,
+      handler(newTask) {
+        if (newTask) {
+          this.fetchUser(newTask.userId);
+        }
+      }
+    }
   },
   methods: {
-    async fetchTask() {
+    async fetchUser(userId) {
       try {
-        let response = await axios.get(`http://localhost:3000/tasks/${this.taskId}`);
-        this.task = response.data;
-
-        let userResponse = await axios.get(`http://localhost:3000/users/${this.task.userId}`);
-        this.userName = userResponse.data.name;
+        let response = await axios.get(`http://localhost:3000/users/${userId}`);
+        this.userName = response.data.name;
       } catch (error) {
-        console.error("Error fetching task:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to load task details.",
-          confirmButtonColor: "#d33"
-        }).then(() => {
-          this.$router.push({ name: "Home" });
-        });
+        console.error("Error fetching user:", error);
       }
+    },
+    formatDate(date) {
+      return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    },
+    formatDateTime(dateTime) {
+      return new Date(dateTime).toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
     }
   }
 };
 </script>
 
 <style scoped>
-/* Background & Container */
-.detail-container {
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #74ebd5, #acb6e5);
+  z-index: 1000;
 }
 
-/* Card Styling */
-.card {
+/* Modal Content */
+.modal-content {
   background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  max-width: 500px;
-  width: 90%;
-  animation: fadeIn 0.5s ease-in-out;
+  padding: 25px;
+  border-radius: 12px;
+  width: 450px;
+  text-align: left;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  position: relative;
 }
 
-/* Title */
-.title {
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 20px;
+/* Close Button */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 50%;
 }
 
 /* Task Info */
 .task-info p {
-  font-size: 18px;
-  color: #555;
   margin: 10px 0;
-  word-wrap: break-word; /* Ensures long words break into new lines */
-  overflow-wrap: break-word; /* Extra safeguard for wrapping */
-  white-space: pre-wrap; /* Preserves spaces and breaks text */
-  max-width: 100%; /* Ensures it does not overflow outside */
+  font-size: 17px;
+  color: #333;
 }
 
-
-/* Loading State */
-.loading p {
-  font-size: 16px;
-  color: #777;
+/* Task Status Colors */
+.completed {
+  color: green;
+  font-weight: bold;
 }
 
-/* Buttons */
-.btn {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 12px 20px;
-  font-size: 16px;
-  color: white;
-  background: #3498db;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s ease-in-out;
+.overdue {
+  color: red;
+  font-weight: bold;
 }
 
-.btn:hover {
-  background: #2980b9;
+.inprogress {
+  color: orange;
+  font-weight: bold;
 }
 
-/* Router Link Button */
-.back-btn a {
-  text-decoration: none;
-  color: white;
+/* Loading Text */
+.loading {
+  font-size: 18px;
+  color: gray;
+  text-align: center;
 }
 
-/* Animations */
+/* Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
